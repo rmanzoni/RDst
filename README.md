@@ -1,6 +1,6 @@
 # RDst
 
-instructions to produce the "inclusive" D* mu MC
+## instructions to produce the "inclusive" D* mu MC
 
 ```
 cmsrel CMSSW_10_6_24
@@ -31,9 +31,20 @@ cmsDriver.py Configuration/GenProduction/python/RDst-InclusiveHbToDstMu-no-accep
 --no_exec                                                                                         \
 --customise Configuration/DataProcessing/Utils.addMonitoring -n -1
 
-
+# produce the sample
 cmsRun RDst-InclusiveHbToDstMu-no-acceptance_cfg.py
+```
 
+## inspect the sample and save the list of decay that produce a D* and a muon from the same b-hadron
+It also merges together charge-conjugate processes, processes that differ only by FSR and processes that differ by B oscillations
 
 ```
+ipython -i inspector.py
+```
+
+## plot the results
+```
+ipython -i plot_decays.py
+```
+
 
