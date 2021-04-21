@@ -47,4 +47,7 @@ ipython -i inspector.py
 ipython -i plot_decays.py
 ```
 
+## extra, untested, multithreading at GEN
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookGenMultithread
+
 
