@@ -14,6 +14,7 @@ from DataFormats.FWLite import Events, Handle
 from PhysicsTools.HeppyCore.utils.deltar import deltaR, deltaPhi
 from itertools import product
 # https://pypi.org/project/particle/
+import particle
 from particle import Particle
 
 parser = argparse.ArgumentParser(description='')
@@ -150,6 +151,26 @@ maxevents = maxevents if maxevents>=0 else events.size() # total number of event
 
 alldecays = dict()
 
+branches = [
+    'run',
+    'lumi',
+    'event',
+    
+    'tmpDecayIndex',
+    
+    'm2_miss',
+    'q2',
+    'e_star_mu3'
+]
+
+decay_index = {}
+next_decay_index = 0
+
+fout = ROOT.TFile('decay_info.root', 'recreate')
+ntuple = ROOT.TNtuple('tree', 'tree', ':'.join(branches))
+decayIndexNtuple = ROOT.TNtuple('decayIndexTree', 'decayIndexTree', 'decayIndex')
+tofill = OrderedDict(zip(branches, [np.nan]*len(branches)))
+
 for i, event in enumerate(events):
 
     if (i+1)>maxevents:
@@ -175,8 +196,9 @@ for i, event in enumerate(events):
     
     dsts  = [ip for ip in event.genp if abs(ip.pdgId())==413]
 #     muons = [ip for ip in event.genp if abs(ip.pdgId())==13 and ip.status()==1 and ip.pt()>7. and abs(ip.eta())<1.5]
-    muons = [ip for ip in event.genp if abs(ip.pdgId())==13 and ip.status()==1]
+    muons = sorted([ip for ip in event.genp if abs(ip.pdgId())==13 and ip.status()==1], key = lambda ip: ip.pt(), reverse = True)
     
+    used_ancestors = set()
     for ids, imu in product(dsts, muons):
 #         if iev == 2333: import pdb ; pdb.set_trace()
             
@@ -235,6 +257,38 @@ for i, event in enumerate(events):
             alldecays[decayName] += 1
         else:
             alldecays[decayName] = 1
+            decay_index[decayName] = next_decay_index
+            next_decay_index += 1
+        
+        if ids.ancestors[-1] in used_ancestors:
+            # a different pair with this ancestor was already registered in this event
+            # possibly a decay with 2 muons and a Dst
+            # we keep only the highest pt muon, as we sorted the muons before
+            continue
+
+        used_ancestors.add(ids.ancestors[-1])
+        
+        b_lab_p4 = imu.p4() + ids.p4()
+        b_scaled_p4 = b_lab_p4 * ((particle.literals.B_0.mass/1000)/b_lab_p4.mass())
+        
+        b_scaled_p4_tlv = ROOT.TLorentzVector() ; b_scaled_p4_tlv.SetPtEtaPhiE(b_scaled_p4.pt(), b_scaled_p4.eta(), b_scaled_p4.phi(), b_scaled_p4.energy())
+        imu_p4_tlv = ROOT.TLorentzVector() ; imu_p4_tlv.SetPtEtaPhiE(imu.pt(), imu.eta(), imu.phi(), imu.energy())
+        
+        b_scaled_p4_boost = b_scaled_p4_tlv.BoostVector()
+        
+        imu_p4_in_b_rf = imu_p4_tlv.Clone(); imu_p4_in_b_rf.Boost(-b_scaled_p4_boost)
+        
+        tofill['run'          ] = event.eventAuxiliary().run()
+        tofill['lumi'         ] = event.eventAuxiliary().luminosityBlock()
+        tofill['event'        ] = event.eventAuxiliary().event()
+        
+        tofill['m2_miss'      ] = (b_scaled_p4 - imu.p4() - ids.p4()).mass2()
+        tofill['q2'           ] = (b_scaled_p4 - ids.p4()).mass2()
+        tofill['e_star_mu3'   ] = imu_p4_in_b_rf.E()
+        
+        tofill['tmpDecayIndex'] = decay_index[decayName]
+        
+        ntuple.Fill(array('f', tofill.values()))
         
 logfile.close()
 
@@ -247,6 +301,7 @@ sorted_all_decays = OrderedDict(alldecays)
 sorted_all_decays_merged = OrderedDict()
 already_done = OrderedDict()
 
+
 for k in sorted_all_decays.keys():
     reference = map(int, re.findall('[0-9]+', k))
     gammaless_reference = list(filter(lambda x: x != 22, reference)) # don't count FSR photons
@@ -256,6 +311,7 @@ for k in sorted_all_decays.keys():
             continue
     already_done[repr(gammaless_reference)] = k
 
+decay_merge_map = {}
 for v in already_done.values():
     sorted_all_decays_merged[v] = 0
     reference = map(int, re.findall('[0-9]+', v))
@@ -265,11 +321,30 @@ for v in already_done.values():
         undertest = list(filter(lambda x: x != 22, undertest)) # don't count FSR photons
         if undertest == gammaless_reference:
             sorted_all_decays_merged[v] += vv
+            decay_merge_map[kk] = v
+
 
 sorted_all_decays_merged = OrderedDict(sorted(sorted_all_decays_merged.items(), key=lambda x: x[1], reverse=True))
+
+sorted_decay_index = {decay_name: index for index, decay_name in enumerate(sorted_all_decays_merged.keys())}
+
+with open("decay_dictionary", "w") as decay_dict_out:
+    for index, decay_name in enumerate(sorted_all_decays_merged.keys()):
+        print(index, decay_name, file = decay_dict_out)
+
+decay_index_ordering = {raw_decay_index: sorted_decay_index[decay_merge_map[decay_name]] for decay_name, raw_decay_index in decay_index.items()}
+
+for event in ntuple:
+    decayIndexNtuple.Fill(decay_index_ordering[event.tmpDecayIndex])
+
+fout.cd()
+ntuple.Write()
+decayIndexNtuple.Write()
+fout.Close()
 
 with open('decay_no_acceptance_fullstat_test.pkl', 'wb') as fout:
 #     pickle.dump(sorted_all_decays, fout)
     pickle.dump(sorted_all_decays_merged, fout)
+
 
 
