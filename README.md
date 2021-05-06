@@ -16,6 +16,8 @@ scram b
 curl -s --insecure https://raw.githubusercontent.com/rmanzoni/RDst/main/RDst-InclusiveHbToDstMu-fragment.py --create-dirs -o Configuration/GenProduction/python/RDst-InclusiveHbToDstMu-fragment.py
 curl -s --insecure https://raw.githubusercontent.com/rmanzoni/RDst/main/RDst-InclusiveHbToDstMu-no-acceptance-fragment.py --create-dirs -o Configuration/GenProduction/python/RDst-InclusiveHbToDstMu-no-acceptance-fragment.py
 
+scram b
+
 # mutatis mutandis for the other fragment
 cmsDriver.py Configuration/GenProduction/python/RDst-InclusiveHbToDstMu-no-acceptance-fragment.py \
 --fileout file:RDst-InclusiveHbToDstMu-no-acceptance.root                                         \
