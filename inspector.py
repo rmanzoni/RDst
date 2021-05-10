@@ -161,6 +161,26 @@ branches = [
     'm2_miss',
     'q2',
     'e_star_mu3'
+    
+    'mu_pt',
+    'mu_eta',
+    'mu_phi',
+    'mu_E',
+    
+    'pi_dst_pt'
+    'pi_dst_eta'
+    'pi_dst_phi'
+    'pi_dst_E',
+    
+    'pi_d0_pt'
+    'pi_d0_eta'
+    'pi_d0_phi'
+    'pi_d0_E',
+    
+    'k_pt'
+    'k_eta'
+    'k_phi'
+    'k_E',
 ]
 
 decay_index = {}
@@ -216,6 +236,7 @@ for i, event in enumerate(events):
             ids.ancestors = ancestorsds
 
         if len(ids.ancestors)==0 or len(imu.ancestors)==0: continue
+        if (imu.charge()*ids.charge() > 0): continue #same charge, cannot be a single B0
 
         if ids.ancestors[-1] != imu.ancestors[-1]: continue
         
@@ -233,10 +254,19 @@ for i, event in enumerate(events):
                 id0.daughters = [abs(id0.daughter(idau).pdgId()) for idau in range(id0.numberOfDaughters())]
                 id0.daughters = [idau for idau in id0.daughters if idau!=22] # remove photons
                 id0.daughters.sort()
+            elif abs(ids.daughter(idau).pdgId())==211:
+                ipi_dst = ids.daughter(idau)
 
         if id0.daughters != [211, 321]: continue
+        
+        for idau in range(id0.numberOfDaughters()):
+            if abs(id0.daughter(idau).pdgId())==321:
+                ik = id0.daughter(idau)
+            elif abs(id0.daughter(idau).pdgId())==211:
+                ipi_d0 = id0.daughter(idau)
 
 #         if iev == 2333: import pdb ; pdb.set_trace()
+        
         
         print('\n\n'+'-'*80, file=logfile)
         print('lumi %d \t event %d' %(lumi, iev), file=logfile)
@@ -285,6 +315,26 @@ for i, event in enumerate(events):
         tofill['m2_miss'      ] = (b_scaled_p4 - imu.p4() - ids.p4()).mass2()
         tofill['q2'           ] = (b_scaled_p4 - ids.p4()).mass2()
         tofill['e_star_mu3'   ] = imu_p4_in_b_rf.E()
+        
+        tofill['mu_pt        '] = imu.pt()
+        tofill['mu_eta       '] = imu.eta()
+        tofill['mu_phi       '] = imu.phi()
+        tofill['mu_E         '] = imu.energy()
+        
+        tofill['pi_dst_pt    '] = ipi_dst.pt()
+        tofill['pi_dst_eta   '] = ipi_dst.eta()
+        tofill['pi_dst_phi   '] = ipi_dst.phi()
+        tofill['pi_dst_E     '] = ipi_dst.energy()
+        
+        tofill['pi_d0_pt     '] = ipi_d0.pt()
+        tofill['pi_d0_eta    '] = ipi_d0.eta()
+        tofill['pi_d0_phi    '] = ipi_d0.phi()
+        tofill['pi_d0_E      '] = ipi_d0.energy()
+        
+        tofill['k_pt         '] = ik.pt()
+        tofill['k_eta        '] = ik.eta()
+        tofill['k_phi        '] = ik.phi()
+        tofill['k_E          '] = ik.energy()
         
         tofill['tmpDecayIndex'] = decay_index[decayName]
         
@@ -338,6 +388,7 @@ for event in ntuple:
     decayIndexNtuple.Fill(decay_index_ordering[event.tmpDecayIndex])
 
 fout.cd()
+ntuple.AddFriend(decayIndexNtuple)
 ntuple.Write()
 decayIndexNtuple.Write()
 fout.Close()
