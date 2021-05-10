@@ -166,21 +166,29 @@ branches = [
     'mu_eta',
     'mu_phi',
     'mu_E',
+    'mu_mass',
+    'mu_charge',
     
     'pi_dst_pt'
     'pi_dst_eta'
     'pi_dst_phi'
     'pi_dst_E',
+    'pi_dst_mass',
+    'pi_dst_charge',
     
     'pi_d0_pt'
     'pi_d0_eta'
     'pi_d0_phi'
     'pi_d0_E',
+    'pi_d0_mass',
+    'pi_d0_charge',
     
     'k_pt'
     'k_eta'
     'k_phi'
     'k_E',
+    'k_mass',
+    'k_charge',
 ]
 
 decay_index = {}
@@ -320,21 +328,29 @@ for i, event in enumerate(events):
         tofill['mu_eta       '] = imu.eta()
         tofill['mu_phi       '] = imu.phi()
         tofill['mu_E         '] = imu.energy()
+        tofill['mu_mass      '] = imu.mass()
+        tofill['mu_charge    '] = imu.charge()
         
         tofill['pi_dst_pt    '] = ipi_dst.pt()
         tofill['pi_dst_eta   '] = ipi_dst.eta()
         tofill['pi_dst_phi   '] = ipi_dst.phi()
         tofill['pi_dst_E     '] = ipi_dst.energy()
+        tofill['pi_dst_mass  '] = ipi_dst.mass()
+        tofill['pi_dst_charge'] = ipi_dst.charge()
         
         tofill['pi_d0_pt     '] = ipi_d0.pt()
         tofill['pi_d0_eta    '] = ipi_d0.eta()
         tofill['pi_d0_phi    '] = ipi_d0.phi()
         tofill['pi_d0_E      '] = ipi_d0.energy()
+        tofill['pi_d0_mass   '] = ipi_d0.mass()
+        tofill['pi_d0_charge '] = ipi_d0.charge()
         
         tofill['k_pt         '] = ik.pt()
         tofill['k_eta        '] = ik.eta()
         tofill['k_phi        '] = ik.phi()
         tofill['k_E          '] = ik.energy()
+        tofill['k_mass       '] = ik.mass()
+        tofill['k_charge     '] = ik.charge()
         
         tofill['tmpDecayIndex'] = decay_index[decayName]
         
