@@ -139,11 +139,14 @@ handles = OrderedDict()
 handles['genp'   ] = ('genParticles', Handle('std::vector<reco::GenParticle>'))
 handles['genInfo'] = ('generator'   , Handle('GenEventInfoProduct'           ))
 
-files  = glob('/pnfs/psi.ch/cms/trivcat/store/user/manzoni/RDst_InclusiveHbToDstMu_no_accecptance_GEN_19apr21_v2/*root')
+# files  = glob('/pnfs/psi.ch/cms/trivcat/store/user/manzoni/RDst_InclusiveHbToDstMu_no_accecptance_GEN_19apr21_v2/*root')
+# files  = glob('/pnfs/psi.ch/cms/trivcat/store/user/manzoni/RDst-InclusiveHbToDstMu-evtgen_GEN_11may21_v1/*root')
+files  = glob('/pnfs/psi.ch/cms/trivcat/store/user/manzoni/RDst-InclusiveHbToDstMu-pythia_GEN_11may21_v1/*root')
 # events = Events(files[:20])
 events = Events(files)
 
-logfile = open('RDst_InclusiveHbToDstMu_no_acceptance_fullstat_test.txt', 'w')
+# logfile = open('RDst_InclusiveHbToDstMu_no_acceptance_fullstat_test.txt', 'w')
+logfile = open('test.txt', 'w')
 
 start = time()
 # maxevents = 2e5
@@ -158,6 +161,10 @@ branches = [
     
     'tmpDecayIndex',
     
+    'dst_m_mass',
+    'dst_m_pt',     
+    'dst_m_eta',    
+    'dst_m_phi',   
     'm2_miss',
     'q2',
     'e_star_mu3',
@@ -320,37 +327,41 @@ for i, event in enumerate(events):
         tofill['lumi'         ] = event.eventAuxiliary().luminosityBlock()
         tofill['event'        ] = event.eventAuxiliary().event()
         
+        tofill['dst_m_mass'   ] = b_lab_p4.mass()
+        tofill['dst_m_pt'     ] = b_lab_p4.pt()
+        tofill['dst_m_eta'    ] = b_lab_p4.eta()
+        tofill['dst_m_phi'    ] = b_lab_p4.phi()
         tofill['m2_miss'      ] = (b_scaled_p4 - imu.p4() - ids.p4()).mass2()
         tofill['q2'           ] = (b_scaled_p4 - ids.p4()).mass2()
         tofill['e_star_mu3'   ] = imu_p4_in_b_rf.E()
         
-        tofill['mu_pt        '] = imu.pt()
-        tofill['mu_eta       '] = imu.eta()
-        tofill['mu_phi       '] = imu.phi()
-        tofill['mu_E         '] = imu.energy()
-        tofill['mu_mass      '] = imu.mass()
-        tofill['mu_charge    '] = imu.charge()
+        tofill['mu_pt'        ] = imu.pt()
+        tofill['mu_eta'       ] = imu.eta()
+        tofill['mu_phi'       ] = imu.phi()
+        tofill['mu_E'         ] = imu.energy()
+        tofill['mu_mass'      ] = imu.mass()
+        tofill['mu_charge'    ] = imu.charge()
         
-        tofill['pi_dst_pt    '] = ipi_dst.pt()
-        tofill['pi_dst_eta   '] = ipi_dst.eta()
-        tofill['pi_dst_phi   '] = ipi_dst.phi()
-        tofill['pi_dst_E     '] = ipi_dst.energy()
-        tofill['pi_dst_mass  '] = ipi_dst.mass()
+        tofill['pi_dst_pt'    ] = ipi_dst.pt()
+        tofill['pi_dst_eta'   ] = ipi_dst.eta()
+        tofill['pi_dst_phi'   ] = ipi_dst.phi()
+        tofill['pi_dst_E'     ] = ipi_dst.energy()
+        tofill['pi_dst_mass'  ] = ipi_dst.mass()
         tofill['pi_dst_charge'] = ipi_dst.charge()
         
-        tofill['pi_d0_pt     '] = ipi_d0.pt()
-        tofill['pi_d0_eta    '] = ipi_d0.eta()
-        tofill['pi_d0_phi    '] = ipi_d0.phi()
-        tofill['pi_d0_E      '] = ipi_d0.energy()
-        tofill['pi_d0_mass   '] = ipi_d0.mass()
-        tofill['pi_d0_charge '] = ipi_d0.charge()
+        tofill['pi_d0_pt'     ] = ipi_d0.pt()
+        tofill['pi_d0_eta'    ] = ipi_d0.eta()
+        tofill['pi_d0_phi'    ] = ipi_d0.phi()
+        tofill['pi_d0_E'      ] = ipi_d0.energy()
+        tofill['pi_d0_mass'   ] = ipi_d0.mass()
+        tofill['pi_d0_charge' ] = ipi_d0.charge()
         
-        tofill['k_pt         '] = ik.pt()
-        tofill['k_eta        '] = ik.eta()
-        tofill['k_phi        '] = ik.phi()
-        tofill['k_E          '] = ik.energy()
-        tofill['k_mass       '] = ik.mass()
-        tofill['k_charge     '] = ik.charge()
+        tofill['k_pt'         ] = ik.pt()
+        tofill['k_eta'        ] = ik.eta()
+        tofill['k_phi'        ] = ik.phi()
+        tofill['k_E'          ] = ik.energy()
+        tofill['k_mass'       ] = ik.mass()
+        tofill['k_charge'     ] = ik.charge()
         
         tofill['tmpDecayIndex'] = decay_index[decayName]
         
@@ -409,7 +420,8 @@ ntuple.Write()
 decayIndexNtuple.Write()
 fout.Close()
 
-with open('decay_no_acceptance_fullstat_test.pkl', 'wb') as fout:
+# with open('decay_no_acceptance_fullstat_test.pkl', 'wb') as fout:
+with open('test.pkl', 'wb') as fout:
 #     pickle.dump(sorted_all_decays, fout)
     pickle.dump(sorted_all_decays_merged, fout)
 
