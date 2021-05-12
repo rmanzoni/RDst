@@ -135,6 +135,9 @@ def decayChainToLabel(particle, label='', generation=0):
 
     return label
     
+def hasSecondD(muAncestors):    
+    return any([(ianc.pdgId() > 400 and ianc.pdgId() < 500) or (ianc.pdgId() > 4000 and ianc.pdgId() < 5000) for ianc in muAncestors])
+    
 handles = OrderedDict()
 handles['genp'   ] = ('genParticles', Handle('std::vector<reco::GenParticle>'))
 handles['genInfo'] = ('generator'   , Handle('GenEventInfoProduct'           ))
@@ -196,6 +199,8 @@ branches = [
     'k_E',
     'k_mass',
     'k_charge',
+    
+    'has_double_charm',
 ]
 
 decay_index = {}
@@ -362,6 +367,8 @@ for i, event in enumerate(events):
         tofill['k_E'          ] = ik.energy()
         tofill['k_mass'       ] = ik.mass()
         tofill['k_charge'     ] = ik.charge()
+        
+        tofill['has_double_charm'] = hasSecondD(imu.ancestors)
         
         tofill['tmpDecayIndex'] = decay_index[decayName]
         
