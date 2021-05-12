@@ -64,7 +64,8 @@ def relabel(label):
 # ff = open('decay.pkl')
 # ff = open('decay_no_acceptance.pkl')
 # ff = open('decay_no_acceptance_fullstat.pkl')
-ff = open('decay_no_acceptance_fullstat_test.pkl')
+# ff = open('decay_no_acceptance_fullstat_test.pkl')
+ff = open('test.pkl')
 decays = pickle.load(ff)
 ff.close()
 
@@ -89,6 +90,7 @@ occurrences = [idecay[1] for idecay in alldecays]
 y_pos = np.arange(len(decays))
 frequency = np.array(occurrences).astype(np.float32)/total_events
 newlabels = map(relabel, decays)
+newlabels = [newlabels[ii]+'   idx %4d'%ii for ii in range(len(newlabels))]
 
 print('total decays', len(decays))
 
