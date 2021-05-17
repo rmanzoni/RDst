@@ -37,6 +37,10 @@ def particle_to_latex(pdgid):
             return "\\Xi'_{b}^{-}"
         elif pdgid==-5312:
             return "\\Xi'_{b}^{+}"
+        elif pdgid==5324:
+            return '\\Xi*_{b}^{0}'
+        elif pdgid==5324:
+            return '\\bar{\\Xi}*_{b}^{0}'
         print('pdg not found', pdgid)    
         return ' %d'%pdgid
 #         import pdb ; pdb.set_trace()
@@ -65,7 +69,8 @@ def relabel(label):
 # ff = open('decay_no_acceptance.pkl')
 # ff = open('decay_no_acceptance_fullstat.pkl')
 # ff = open('decay_no_acceptance_fullstat_test.pkl')
-ff = open('test.pkl')
+# ff = open('test.pkl')
+ff = open('test_17may.pkl')
 decays = pickle.load(ff)
 ff.close()
 
@@ -94,16 +99,24 @@ newlabels = [newlabels[ii]+'   idx %4d'%ii for ii in range(len(newlabels))]
 
 print('total decays', len(decays))
 
+chunk_size = 120
+
+
 counter = 1
-for ichunk in range(len(frequency)%100 + 1):
+for ichunk in range(len(frequency)%chunk_size + 1):
     if counter > 4: break
     fig, ax = plt.subplots(figsize=(18, 54))
     print('doing chunk', counter)
-    ini = ichunk*100
-    fin = (ichunk+1)*100
-    ax.barh(y_pos[ini:fin], frequency[ini:fin], align='center')
+    mymin = min(1.e-5, 0.5*np.min(frequency[ini:fin]))
+    mymax = min(1., 2.*np.max(frequency[ini:fin]))
+    ini = ichunk*chunk_size
+    fin = (ichunk+1)*chunk_size
+    ax.barh(y_pos[ini:fin], frequency[ini:fin], align='center', xerr=np.sqrt(occurrences[ini:fin])/total_events)
     for i, v in enumerate(frequency[ini:fin]):
-        ax.text(v, i, '%.3f%s'%(100.*v, '%'), color='black', fontweight='bold')
+        vv = occurrences[ini:fin][i]
+        ax.text(1.1*mymin, i, '%.3f%s - %d events'%(100.*v, '%', vv), color='lightgray', fontweight='bold')
+#         ax.text(v, i, '%.3f%s'%(100.*v, '%'), color='black', fontweight='bold')
+#         ax.text(v/2., i, '%d ev.'%(vv), color='white', fontweight='bold')
     ax.set_yticks(y_pos[ini:fin])
     # ax.set_yticklabels(map(relabel, decays))
     ax.set_yticklabels(newlabels[ini:fin])
@@ -116,6 +129,18 @@ for ichunk in range(len(frequency)%100 + 1):
     # ax.set_xlim(300, 400)
     # ax.set_box_aspect(10)
     ax.margins(y=0.001)
+    plt.xlim(mymin, mymax)
+    
+    textstr = '\n'.join([
+        'tot events %d' %total_events,
+        'tot events in this chunk %d' %(np.sum(occurrences[ini:fin])),
+        'tot fraction in this chunk %.3f%s' %(100.*np.sum(frequency[ini:fin]), '%'),
+    ])
+
+    # place a text box in upper left in axes coords
+#     ax.text(0.6 * (mymax-mymin), 0.92, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top')
+    plt.text(0.05, 0.98, textstr, transform=ax.transAxes, fontsize=14, verticalalignment='top')
+    
     fig.tight_layout()
 
     # plt.savefig('decay_frequency_nicer.pdf')
